@@ -41,7 +41,7 @@ public:
   FlatFileMap(int domainSize) {
     this->domainSize = domainSize;
     this->hashedArray = new V*[domainSize];
-    this->dictionaryArray = new T(domainSize);
+    this->dictionaryArray = new T[domainSize];
   }
 
   ~FlatFileMap() {
