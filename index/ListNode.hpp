@@ -1,4 +1,7 @@
 #include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <ostream>
 template <typename T> class ListNode {
 private:
   ListNode<T>* next;
@@ -28,12 +31,12 @@ public:
       return;
     }
     if (this->next->next == nullptr) {
-      free(this->next);
-      this->next == nullptr;
+      delete this->next;
+      this->next = nullptr;
       return;
     } else {
       ListNode* newNext = this->next->next;
-      free(this->next);
+      delete this->next;
       this->next = newNext;
     }
   }
@@ -45,4 +48,31 @@ public:
     }
     this->next->append(node);
   }
+
+  void deleteByFilter(std::function<bool(T*)> filter) {
+    if(this->next == nullptr) {
+      if (filter(this->value)){ 
+        delete this;
+      }
+      return;
+    }
+    if (filter(this->next->value)) {
+      return this->deleteAfter();
+    } else {
+      return this->next->deleteByFilter(filter);
+    }
+  }
+  template<typename U>
+  friend std::ostream& operator<<(std::ostream& os, const ListNode<U>& node);
 };
+
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const ListNode<T>& l) {
+  os << *(l.value) << ", ";
+  if (l.next == nullptr) {
+    os << std::endl;
+    return os;
+  }
+  return os << *l.next;
+}

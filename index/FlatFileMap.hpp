@@ -1,3 +1,18 @@
+#include <iostream>
+#include <ostream>
+#include <torch/script.h>
+
+template <typename T>
+bool isEqual(const T& a, const T& b) {
+    return a == b;
+}
+
+template <>
+bool isEqual<torch::Tensor>(const torch::Tensor& a, const torch::Tensor& b) {
+    return a.equal(b);
+}
+
+
 template <typename T, typename V> class FlatFileMap {
 private: 
   int domainSize;
@@ -6,8 +21,8 @@ private:
   T* dictionaryArray;
 
   int getKeyIndex(T key) {
-    for (int i = 0; i<this->domainSize; i++) {
-      if (this->dictionaryArray[i] == key) {
+    for (int i = 0; i<this->lastDictionaryKey; i++) {
+      if (isEqual(this->dictionaryArray[i], key)) {
         return i;
       }
     }
@@ -48,8 +63,8 @@ public:
     for (int i = 0; i<this->domainSize; i++) {
       delete(hashedArray[i]);
     }
-    delete(this->hashedArray);
-    delete(this->dictionaryArray);
+    delete this->hashedArray;
+    delete this->dictionaryArray;
   }
 
 };
