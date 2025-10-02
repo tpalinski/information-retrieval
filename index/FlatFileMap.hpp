@@ -32,7 +32,7 @@ private:
 public:
   void put(T key, V* value) {
     int keyIndex = this->getKeyIndex(key);
-    if (keyIndex == -1 && lastDictionaryKey<domainSize-1) {
+    if (keyIndex == -1 && lastDictionaryKey<domainSize) {
       this->dictionaryArray[lastDictionaryKey] = key;
       this->hashedArray[lastDictionaryKey] = value;
       this->lastDictionaryKey++;

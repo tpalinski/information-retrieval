@@ -8,8 +8,8 @@ using namespace std;
 
 int main() {
   torch::NoGradGuard gradGuard;
-  const int64_t num_clusters = 3;
-  const int64_t dim = 3;
+  const int64_t num_clusters = 140;
+  const int64_t dim = 2048;
   const int64_t points_per_cluster = 500;
   const int64_t total_points = num_clusters * points_per_cluster;
 

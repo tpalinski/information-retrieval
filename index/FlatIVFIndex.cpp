@@ -56,28 +56,37 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
     centroids[i] = tensors[firstIndices[i]];
   }
   bool converged = false;
+  int iterations = 0;
   // Main loop
   while (!converged) {
+    iterations++;
+    std::cout << "Partitioning space. Iteration: " << iterations << std::endl;
     if(this->map != nullptr) {
       delete this->map;
     }
+    std::cout << "Assigning to centroids" << std::endl;
     // assign to closest centroid
     this->map = new FlatFileMap<torch::Tensor, ListNode<EmbeddedDocumentNode>>(clusters);
     for (int i = 0; i<tensorCount; i++) {
       torch::Tensor closestCluster = assignToCluster(centroids, tensors[i]);
       this->addTensorToMap(tensors[i], closestCluster, i);
     } 
+    std::cout << "Recalculating centroids" << std::endl;
     // recalculate new centroids
     std::vector<torch::Tensor> newCentroids(clusters);
     for (int i = 0; i<clusters; i++) {
-      std::cout << this->map->keys() << std::endl;
-      std::cout << centroids[i] << std::endl;
       ListNode<EmbeddedDocumentNode>* cluster = this->map->get(centroids[i]);
+      // possible that none of the og clusters were closest
+      if (cluster == nullptr) {
+        newCentroids[i] = centroids[i];
+        continue;
+      }
       std::tuple<EmbeddedDocumentNode, int> reduced = cluster->reduceAdd(EmbeddedDocumentNode(torch::zeros(this->dims), -1));
       torch::Tensor newMean = std::get<0>(reduced).embedding / (double)std::get<1>(reduced);
       newCentroids[i] = newMean;
     }
     // Stop check
+    std::cout << "Checking convergence" << std::endl;
     converged = true;
     for (int i = 0; i<clusters; i++) {
       if (!newCentroids[i].equal(centroids[i])) {
@@ -86,7 +95,9 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
       }
     }
     centroids = newCentroids;
-    std::cout << centroids << std::endl;
+    if (converged) {
+      std::cout << "Centroids: \n" << centroids << std::endl;
+    }
   }
 }
 
