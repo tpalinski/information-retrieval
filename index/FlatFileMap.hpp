@@ -1,3 +1,4 @@
+#include <iterator>
 #include <torch/script.h>
 #include <vector>
 
@@ -53,7 +54,7 @@ public:
   }
 
   inline std::vector<T> keys() {
-    return std::vector(this->dictionaryArray, this->domainSize);
+    return std::vector<T>(this->dictionaryArray, this->dictionaryArray+this->domainSize);
   }
 
   FlatFileMap(int domainSize) {

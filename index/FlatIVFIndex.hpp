@@ -11,11 +11,11 @@ private:
   bool isTrained;
   FlatFileMap<torch::Tensor, ListNode<EmbeddedDocumentNode>>* map;
 
-  void runKMeans(torch::Tensor* tensors, int tensorCount, int clusters);
+  void runKMeans(std::vector<torch::Tensor>& tensors, int clusters);
   void addTensorToMap(torch::Tensor& tensor, const torch::Tensor& key, int id);
 
 public:
-  void train(torch::Tensor* tensors, int tensorCount, int ncells);
+  void train(std::vector<torch::Tensor>& tensors, int ncells);
   const bool find(const torch::Tensor& target, int* results, int nprobe, int nresults);
 
   FlatIVFIndex(int dims) {

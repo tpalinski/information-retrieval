@@ -1,6 +1,8 @@
 #include "FlatIVFIndex.hpp"
 #include <cstring>
+#include <iostream>
 #include <numeric>
+#include <ostream>
 #include <random>
 #include <tuple>
 #include <vector>
@@ -15,7 +17,7 @@ std::vector<int> chooseRandomIndices(int total, int nResults) {
   return std::vector(indices.begin(), indices.begin()+nResults);
 }
 
-torch::Tensor assignToCluster(std::vector<torch::Tensor> clusters, const torch::Tensor& vector) {
+torch::Tensor assignToCluster(std::vector<torch::Tensor> clusters, const torch::Tensor vector) {
   double minDistance = MAXFLOAT;
   torch::Tensor closest;
   for (torch::Tensor cluster : clusters) {
@@ -45,8 +47,9 @@ void FlatIVFIndex::addTensorToMap(torch::Tensor& tensor, const torch::Tensor& ke
   }
 }
 
-void FlatIVFIndex::runKMeans(torch::Tensor* tensors, int tensorCount, int clusters) {
+void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) {
   // Random intialization amongst the existing population
+  int tensorCount = tensors.size();
   std::vector<torch::Tensor> centroids(clusters);
   std::vector<int> firstIndices = chooseRandomIndices(tensorCount, clusters);
   for (int i = 0; i<clusters; i++) {
@@ -67,9 +70,10 @@ void FlatIVFIndex::runKMeans(torch::Tensor* tensors, int tensorCount, int cluste
     // recalculate new centroids
     std::vector<torch::Tensor> newCentroids(clusters);
     for (int i = 0; i<clusters; i++) {
-      std::tuple<EmbeddedDocumentNode, int> reduced = this->map
-        ->get(centroids[i])
-        ->reduceAdd(EmbeddedDocumentNode(torch::zeros(this->dims), -1));
+      std::cout << this->map->keys() << std::endl;
+      std::cout << centroids[i] << std::endl;
+      ListNode<EmbeddedDocumentNode>* cluster = this->map->get(centroids[i]);
+      std::tuple<EmbeddedDocumentNode, int> reduced = cluster->reduceAdd(EmbeddedDocumentNode(torch::zeros(this->dims), -1));
       torch::Tensor newMean = std::get<0>(reduced).embedding / (double)std::get<1>(reduced);
       newCentroids[i] = newMean;
     }
@@ -82,12 +86,12 @@ void FlatIVFIndex::runKMeans(torch::Tensor* tensors, int tensorCount, int cluste
       }
     }
     centroids = newCentroids;
+    std::cout << centroids << std::endl;
   }
 }
 
-
-void FlatIVFIndex::train(torch::Tensor* tensors, int tensorCount, int ncells) {
-  this->runKMeans(tensors, tensorCount, ncells);
+void FlatIVFIndex::train(std::vector<torch::Tensor>& tensors, int ncells) {
+  this->runKMeans(tensors, ncells);
   this->isTrained = true;
 }
 
