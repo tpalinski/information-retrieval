@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <ostream>
+#include <tuple>
 template <typename T> class ListNode {
 private:
   ListNode<T>* next;
@@ -11,6 +12,10 @@ public:
   ListNode(T* value) {
     this->next = nullptr;
     this->value = value;
+  }
+
+  ~ListNode() {
+    delete this->value;
   }
 
   T* get() {
@@ -62,6 +67,17 @@ public:
       return this->next->deleteByFilter(filter);
     }
   }
+
+  std::tuple<T, int> reduceAdd(T startingValue, int count = 0) {
+    T nextVal = startingValue + *(this->value);
+    int nextCount = count+1;
+    if (this->next == nullptr) {
+      return std::tuple<T, int>(nextVal, nextCount);
+    } else {
+      return this->next->reduceAdd(nextVal, nextCount);
+    }
+  }
+
   template<typename U>
   friend std::ostream& operator<<(std::ostream& os, const ListNode<U>& node);
 };

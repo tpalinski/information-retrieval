@@ -1,14 +1,13 @@
-#include <iostream>
-#include <ostream>
 #include <torch/script.h>
+#include <vector>
 
 template <typename T>
-bool isEqual(const T& a, const T& b) {
+inline bool isEqual(const T& a, const T& b) {
     return a == b;
 }
 
 template <>
-bool isEqual<torch::Tensor>(const torch::Tensor& a, const torch::Tensor& b) {
+inline bool isEqual<torch::Tensor>(const torch::Tensor& a, const torch::Tensor& b) {
     return a.equal(b);
 }
 
@@ -49,8 +48,12 @@ public:
     return hashedArray[keyIndex];
   }
 
-  bool exists(T key) {
+  inline bool exists(T key) {
     return this->getKeyIndex(key) != -1;
+  }
+
+  inline std::vector<T> keys() {
+    return std::vector(this->dictionaryArray, this->domainSize);
   }
 
   FlatFileMap(int domainSize) {
@@ -60,11 +63,8 @@ public:
   }
 
   ~FlatFileMap() {
-    for (int i = 0; i<this->domainSize; i++) {
-      delete(hashedArray[i]);
-    }
     delete this->hashedArray;
-    delete this->dictionaryArray;
+    delete[] this->dictionaryArray;
   }
 
 };
