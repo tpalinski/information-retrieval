@@ -76,7 +76,7 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
     std::vector<torch::Tensor> newCentroids(clusters);
     for (int i = 0; i<clusters; i++) {
       ListNode<EmbeddedDocumentNode>* cluster = this->map->get(centroids[i]);
-      // possible that none of the og clusters were closest
+      // possible that none of the og clusters were closest. 
       if (cluster == nullptr) {
         newCentroids[i] = centroids[i];
         continue;
@@ -107,8 +107,8 @@ void FlatIVFIndex::train(std::vector<torch::Tensor>& tensors, int ncells) {
 }
 
 
-const bool FlatIVFIndex::find(const torch::Tensor& target, int* results, int nprobe, int nresults) {
-  return true;
+const std::vector<int> FlatIVFIndex::find(const torch::Tensor& target, int nprobe, int nresults) {
+  
 }
 
 void saveIndex(const FlatIVFIndex& index, std::string location) {

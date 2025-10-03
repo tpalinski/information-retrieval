@@ -1,4 +1,3 @@
-#include <iterator>
 #include <torch/script.h>
 #include <vector>
 

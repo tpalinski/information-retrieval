@@ -16,7 +16,7 @@ private:
 
 public:
   void train(std::vector<torch::Tensor>& tensors, int ncells);
-  const bool find(const torch::Tensor& target, int* results, int nprobe, int nresults);
+  const std::vector<int> find(const torch::Tensor& target, int nprobe, int nresults);
 
   FlatIVFIndex(int dims) {
     this->isTrained = false;

@@ -4,3 +4,5 @@
 torch::Tensor operator+(const torch::Tensor& t, const EmbeddedDocumentNode& node) {
     return t + node.embedding;
 }
+
+

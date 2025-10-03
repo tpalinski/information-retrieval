@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <iostream>
 #include "index/FlatIVFIndex.hpp"
 #include <random>
 #include <torch/script.h>
@@ -8,9 +7,9 @@ using namespace std;
 
 int main() {
   torch::NoGradGuard gradGuard;
-  const int64_t num_clusters = 140;
+  const int64_t num_clusters = 200;
   const int64_t dim = 2048;
-  const int64_t points_per_cluster = 500;
+  const int64_t points_per_cluster = 200;
   const int64_t total_points = num_clusters * points_per_cluster;
 
   torch::Tensor centers = torch::randn({num_clusters, dim}) * 10.0;
