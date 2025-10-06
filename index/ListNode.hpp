@@ -4,7 +4,7 @@
 #include <ostream>
 #include <tuple>
 template <typename T> class ListNode {
-private:
+protected:
   ListNode<T>* next;
   T* value;
 
@@ -75,6 +75,14 @@ public:
       return std::tuple<T, int>(nextVal, nextCount);
     } else {
       return this->next->reduceAdd(nextVal, nextCount);
+    }
+  }
+
+  int count(int offset = 0) const {
+    if (this->next == nullptr) {
+      return offset+1;
+    } else {
+      return this->next->count(offset+1);
     }
   }
 

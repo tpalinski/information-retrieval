@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include "EmbeddedDocumentNode.hpp"
 
@@ -21,7 +22,8 @@ public:
   }
 
   DocumentNodeMinHeap(int capacity) {
-    this->elements = std::vector<EmbeddedDocumentNode>(capacity);
+    this->elements = std::vector<EmbeddedDocumentNode>();
+    this->elements.reserve(capacity);
   }
 
   inline std::vector<EmbeddedDocumentNode> get() {
@@ -29,7 +31,8 @@ public:
   }
 
   inline std::vector<EmbeddedDocumentNode> getTop(int n) {
-    return std::vector<EmbeddedDocumentNode>(this->elements.begin(), this->elements.begin()+n);
+    int resCount = std::min(n, (int)this->elements.size());
+    return std::vector<EmbeddedDocumentNode>(this->elements.begin(), this->elements.begin()+resCount);
   }
 
   void insert(EmbeddedDocumentNode element, torch::Tensor reference);

@@ -8,6 +8,7 @@ add_executable(main
   index/FlatIVFIndex.cpp
   index/EmbeddedDocumentNode.cpp
   index/DocumentNodeMinHeap.cpp
+  index/EmbeddedDocumentNodeList.cpp
 )
 target_include_directories(main PRIVATE ${PROJECT_SOURCE_DIR}/index)
 target_link_libraries(main "${TORCH_LIBRARIES}")

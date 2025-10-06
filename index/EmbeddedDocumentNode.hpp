@@ -10,11 +10,7 @@ public:
     this->id = id;
   }
 
-  double calculateL2(torch::Tensor b) {
-    torch::Tensor diff = this->embedding - b;
-    torch::Tensor norm = torch::norm(diff, 2);
-    return norm.item<double>();
-  }
+  double calculateL2(const torch::Tensor& b) const;
 
   EmbeddedDocumentNode operator+(const EmbeddedDocumentNode& other) const {
     return EmbeddedDocumentNode(this->embedding + other.embedding, -1);
