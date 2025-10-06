@@ -1,5 +1,7 @@
 #include <torch/script.h>
 #include <vector>
+#include "EmbeddedDocumentNodeList.hpp"
+#include "../serializer/utils.hpp"
 
 template <typename T>
 inline bool isEqual(const T& a, const T& b) {
@@ -19,7 +21,7 @@ private:
   V** hashedArray;
   T* dictionaryArray;
 
-  int getKeyIndex(T key) {
+  int getKeyIndex(T key) const {
     for (int i = 0; i<this->lastDictionaryKey; i++) {
       if (isEqual(this->dictionaryArray[i], key)) {
         return i;
@@ -40,7 +42,7 @@ public:
     }
   }
 
-  V* get(T key) {
+  V* get(T key) const {
     int keyIndex = this->getKeyIndex(key);
     if (keyIndex == -1) {
       return nullptr;
@@ -48,12 +50,27 @@ public:
     return hashedArray[keyIndex];
   }
 
-  inline bool exists(T key) {
+  inline bool exists(T key) const {
     return this->getKeyIndex(key) != -1;
   }
 
-  inline std::vector<T> keys() {
+  inline std::vector<T> keys() const {
     return std::vector<T>(this->dictionaryArray, this->dictionaryArray+this->domainSize);
+  }
+
+  template<typename X = T, typename Y = V>
+  typename std::enable_if<
+    std::is_same<X, torch::Tensor>::value &&
+    std::is_same<Y, EmbeddedDocumentNodeList>::value,
+    void
+  >::type
+  serialize(std::ostream& out) {
+    out.write(reinterpret_cast<const char*>(&domainSize), sizeof(domainSize));
+    out.write(reinterpret_cast<const char*>(&lastDictionaryKey), sizeof(lastDictionaryKey));
+    for (int i = 0; i < lastDictionaryKey; i++) {
+      saveTensor(out, dictionaryArray[i]);
+      hashedArray[i]->serialize(out);
+    }
   }
 
   FlatFileMap(int domainSize) {
@@ -63,7 +80,7 @@ public:
   }
 
   ~FlatFileMap() {
-    delete this->hashedArray;
+    delete[] this->hashedArray;
     delete[] this->dictionaryArray;
   }
 

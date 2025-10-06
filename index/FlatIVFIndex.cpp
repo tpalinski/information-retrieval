@@ -118,6 +118,9 @@ void FlatIVFIndex::train(std::vector<torch::Tensor>& tensors, int ncells) {
 
 
 std::vector<EmbeddedDocumentNode> FlatIVFIndex::find(const torch::Tensor& target, int nprobe, int nresults) const {
+  if (!this->isTrained) {
+    return std::vector<EmbeddedDocumentNode>();
+  }
   std::vector<torch::Tensor> centroids = this->map->keys();
   std::nth_element(centroids.begin(), centroids.begin()+nprobe, centroids.end(), [target](const torch::Tensor& a, const torch::Tensor& b) {
     double aDistance = calculateL2Distance(a, target);
@@ -142,8 +145,18 @@ std::vector<EmbeddedDocumentNode> FlatIVFIndex::find(const torch::Tensor& target
   return std::vector(results.begin(), results.begin()+resCount);
 }
 
+void FlatIVFIndex::serialize(std::ostream& out) const {
+  if (!this->isTrained) {
+    return;
+  }
+  out.write(reinterpret_cast<const char*>(&this->isTrained), sizeof(this->isTrained));
+  out.write(reinterpret_cast<const char*>(&this->dims), sizeof(this->dims));
+  out.write(reinterpret_cast<const char*>(&this->ncells), sizeof(this->ncells));
+  this->map->serialize(out);
+}
+
 void saveIndex(const FlatIVFIndex& index, std::string location) {
-  return;
+  index.serialize(std::cout);
 }
 
 void loadIndex(FlatIVFIndex* index, std::string location) {

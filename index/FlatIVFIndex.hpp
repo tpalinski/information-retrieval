@@ -1,7 +1,7 @@
+#include <ostream>
 #include <string>
 #include <torch/script.h>
 #include "FlatFileMap.hpp"
-#include "EmbeddedDocumentNodeList.hpp"
 
 class FlatIVFIndex {
 private:
@@ -12,6 +12,7 @@ private:
 
   void runKMeans(std::vector<torch::Tensor>& tensors, int clusters);
   void addTensorToMap(torch::Tensor& tensor, const torch::Tensor& key, int id);
+  void serialize(std::ostream& out) const;
 
 public:
   void train(std::vector<torch::Tensor>& tensors, int ncells);
@@ -27,7 +28,8 @@ public:
       delete this->map;
     }
   }
+
+  friend void saveIndex(const FlatIVFIndex& index, std::string location);
+  friend void loadIndex(FlatIVFIndex* index, std::string location);
 };
 
-void saveIndex(const FlatIVFIndex& index, std::string location);
-void loadIndex(FlatIVFIndex* index, std::string location);
