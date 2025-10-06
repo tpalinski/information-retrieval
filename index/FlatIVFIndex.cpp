@@ -83,7 +83,8 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
       ListNode<EmbeddedDocumentNode>* cluster = this->map->get(centroids[i]);
       // possible that none of the og clusters were closest. 
       if (cluster == nullptr) {
-        newCentroids[i] = centroids[i];
+        int newClusterIndex = chooseRandomIndices(tensors.size(), 1)[0];
+        newCentroids[i] = tensors[newClusterIndex];
         continue;
       }
       std::tuple<EmbeddedDocumentNode, int> reduced = cluster->reduceAdd(EmbeddedDocumentNode(torch::zeros(this->dims), -1));
@@ -126,7 +127,6 @@ std::vector<EmbeddedDocumentNode> FlatIVFIndex::find(const torch::Tensor& target
   std::vector<EmbeddedDocumentNode> results;
   for (int i = 0; i<nprobe; i++) {
     EmbeddedDocumentNodeList* cluster = this->map->get(centroids[i]);
-    std::cout << "Elements in closest cluster: " << cluster->count() << std::endl;
     DocumentNodeMinHeap* sorted = new DocumentNodeMinHeap();
     cluster->heapify(sorted, target);
     std::vector<EmbeddedDocumentNode> topResults = sorted->getTop(nresults);
