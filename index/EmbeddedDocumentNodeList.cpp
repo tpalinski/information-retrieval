@@ -15,3 +15,16 @@ void EmbeddedDocumentNodeList::serialize(std::ostream& out) const {
     static_cast<EmbeddedDocumentNodeList*>(this->next)->serialize(out);
   }
 }
+
+void deserializeList(EmbeddedDocumentNodeList* list, std::istream& in) {
+    list->value = new EmbeddedDocumentNode();
+    deserializeNode(list->value, in);
+    bool hasNext;
+    in.read(reinterpret_cast<char*>(&hasNext), sizeof(hasNext));
+    if (hasNext) {
+        list->next = new EmbeddedDocumentNodeList();
+        deserializeList(static_cast<EmbeddedDocumentNodeList*>(list->next), in);
+    } else {
+        list->next = nullptr;
+    }
+}

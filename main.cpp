@@ -37,5 +37,12 @@ int main() {
   for (EmbeddedDocumentNode e : results) {
     cout << "Index: " << e.id << endl;
   }
-  saveIndex(index, "stuff");
+  saveIndex(index, "stuff.bin");
+  FlatIVFIndex* recreated = new FlatIVFIndex();
+  loadIndex(recreated, "stuff.bin");
+  auto reResults = recreated->find(point, nprobe, nresults);
+  cout << "Recreated results: " << endl;
+  for (EmbeddedDocumentNode e : reResults) {
+    cout << "Index: " << e.id << endl;
+  }
 }

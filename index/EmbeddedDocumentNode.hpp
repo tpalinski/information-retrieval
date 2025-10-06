@@ -1,3 +1,4 @@
+#include <istream>
 #include <ostream>
 #include <torch/script.h>
 
@@ -11,6 +12,8 @@ public:
     this->id = id;
   }
 
+  EmbeddedDocumentNode() {}
+
   double calculateL2(const torch::Tensor& b) const;
 
   EmbeddedDocumentNode operator+(const EmbeddedDocumentNode& other) const {
@@ -22,5 +25,6 @@ public:
   }
 
   void serialize(std::ostream& out) const;
+  friend void deserializeNode(EmbeddedDocumentNode* node, std::istream& in);
 };
 

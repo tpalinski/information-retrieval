@@ -79,9 +79,38 @@ public:
     this->dictionaryArray = new T[domainSize];
   }
 
+  FlatFileMap() {}
+
   ~FlatFileMap() {
     delete[] this->hashedArray;
     delete[] this->dictionaryArray;
   }
 
+template <typename X, typename Y>
+friend typename std::enable_if<
+  std::is_same<X, torch::Tensor>::value &&
+  std::is_same<Y, EmbeddedDocumentNodeList>::value,
+  void
+>::type
+    deserializeMap(FlatFileMap<X, Y>* obj, std::istream& in);
 };
+
+
+template<typename T, typename V>
+typename std::enable_if<
+  std::is_same<T, torch::Tensor>::value &&
+  std::is_same<V, EmbeddedDocumentNodeList>::value,
+  void
+>::type
+deserializeMap(FlatFileMap<T, V>* obj, std::istream& in) {
+  in.read(reinterpret_cast<char*>(&obj->domainSize), sizeof(obj->domainSize));
+  in.read(reinterpret_cast<char*>(&obj->lastDictionaryKey), sizeof(obj->lastDictionaryKey));
+  obj->dictionaryArray = new T[obj->lastDictionaryKey];
+  obj->hashedArray = new V*[obj->lastDictionaryKey];
+  for (int i = 0; i < obj->lastDictionaryKey; i++) {
+    obj->dictionaryArray[i] = loadTensor(in);
+    obj->hashedArray[i] = new EmbeddedDocumentNodeList();
+    deserializeList(obj->hashedArray[i], in);
+  }
+}
+

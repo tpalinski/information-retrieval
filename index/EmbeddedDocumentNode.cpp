@@ -17,3 +17,9 @@ void EmbeddedDocumentNode::serialize(std::ostream& out) const {
   out.write(reinterpret_cast<const char*>(&this->id), sizeof(this->id));
   saveTensor(out, this->embedding);
 }
+
+
+void deserializeNode(EmbeddedDocumentNode* node, std::istream& in) {
+  in.read(reinterpret_cast<char*>(&node->id), sizeof(node->id));
+  node->embedding = loadTensor(in);
+}

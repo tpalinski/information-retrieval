@@ -1,6 +1,8 @@
 #include "FlatIVFIndex.hpp"
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <istream>
 #include <iterator>
 #include <numeric>
 #include <ostream>
@@ -155,10 +157,24 @@ void FlatIVFIndex::serialize(std::ostream& out) const {
   this->map->serialize(out);
 }
 
+
+void deserializeIndex(FlatIVFIndex* index, std::istream& in) {
+    in.read(reinterpret_cast<char*>(&index->isTrained), sizeof(index->isTrained));
+    if (!index->isTrained) {
+        return;
+    }
+    in.read(reinterpret_cast<char*>(&index->dims), sizeof(index->dims));
+    in.read(reinterpret_cast<char*>(&index->ncells), sizeof(index->ncells));
+    index->map = new FlatFileMap<torch::Tensor, EmbeddedDocumentNodeList>();
+    deserializeMap(index->map, in);
+}
+
 void saveIndex(const FlatIVFIndex& index, std::string location) {
-  index.serialize(std::cout);
+  std::ofstream out(location, std::ios::binary);
+  index.serialize(out);
 }
 
 void loadIndex(FlatIVFIndex* index, std::string location) {
-  return;
+  std::ifstream in(location, std::ios::binary);
+  deserializeIndex(index, in);
 }

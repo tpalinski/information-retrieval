@@ -9,9 +9,12 @@ protected:
   T* value;
 
 public:
-  ListNode(T* value) {
-    this->next = nullptr;
+  ListNode(T* value) : ListNode() {
     this->value = value;
+  }
+
+  ListNode() {
+    this->next = nullptr;
   }
 
   ~ListNode() {
