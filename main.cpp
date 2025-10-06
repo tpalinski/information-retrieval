@@ -37,4 +37,5 @@ int main() {
   for (EmbeddedDocumentNode e : results) {
     cout << "Index: " << e.id << endl;
   }
+  results[0].serialize(std::cout);
 }

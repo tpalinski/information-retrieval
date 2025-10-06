@@ -1,3 +1,4 @@
+#include <ostream>
 #include <torch/script.h>
 
 class EmbeddedDocumentNode {
@@ -19,5 +20,7 @@ public:
   EmbeddedDocumentNode operator+(const torch::Tensor& other) const {
       return EmbeddedDocumentNode(this->embedding + other, this->id);
   }
+
+  void serialize(std::ostream& out) const;
 };
 
