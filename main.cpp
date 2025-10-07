@@ -4,9 +4,9 @@
 #include <iostream>
 #include <torch/script.h>
 #include <vector>
-#include "httplib.h"
+#include "includes/httplib.h"
 #include "inference/inference.hpp"
-#include "json.hpp"
+#include "includes/json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
