@@ -23,7 +23,7 @@ std::vector<int> getImages(const FlatIVFIndex& index, std::string query, int nre
 
 std::vector<torch::Tensor> getImageEmbeddings(std::string datasetPath) {
   const int64_t num_clusters = 50;
-  const int64_t dim = 2048;
+  const int64_t dim = 128;
   const int64_t points_per_cluster = 200;
   const int64_t total_points = num_clusters * points_per_cluster;
 

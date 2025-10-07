@@ -114,6 +114,7 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
 }
 
 void FlatIVFIndex::train(std::vector<torch::Tensor>& tensors, int ncells) {
+  this->ncells = ncells;
   this->runKMeans(tensors, ncells);
   this->isTrained = true;
 }
