@@ -10,8 +10,13 @@ add_executable(main
   index/DocumentNodeMinHeap.cpp
   index/EmbeddedDocumentNodeList.cpp
   serializer/utils.cpp
+  inference/inference.cpp
 )
-target_include_directories(main PRIVATE ${PROJECT_SOURCE_DIR}/index ${PROJECT_SOURCE_DIR}/serializer)
+target_include_directories(main PRIVATE 
+  ${PROJECT_SOURCE_DIR}/index 
+  ${PROJECT_SOURCE_DIR}/serializer 
+  ${PROJECT_SOURCE_DIR}/inference
+)
 target_link_libraries(main "${TORCH_LIBRARIES}")
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
 

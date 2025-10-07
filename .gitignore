@@ -21,6 +21,7 @@ profile.cov
 # vendor/
 
 build/*
+data/*
 .cache
 
 # env file
