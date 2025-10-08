@@ -29,6 +29,18 @@ int main() {
     index = trainIndex(DATASET_PATH, INDEX_SAVE_PATH, INDEX_CLUSTERS);
   }
 
+  // cors shenanigans
+  server.set_pre_routing_handler([](const httplib::Request &req, httplib::Response &res) {
+    res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return httplib::Server::HandlerResponse::Unhandled;
+  });
+
+  server.Options(".*", [](const httplib::Request&, httplib::Response &res) {
+    res.status = 200;
+  });
+
   server.Post("/query",  [&index](const httplib::Request& req, httplib::Response& res){
     try {
       json input = json::parse(req.body);
@@ -51,6 +63,7 @@ int main() {
       res.set_content(error.dump(), "application/json");
     }
   });
+
 
   std::cout << "Server running at http://localhost:2137" << std::endl;
   server.listen("0.0.0.0", 2137);
