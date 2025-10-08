@@ -38,23 +38,23 @@ torch::Tensor assignToCluster(std::vector<torch::Tensor> clusters, const torch::
   return closest;
 }
 
-void FlatIVFIndex::addTensorToMap(torch::Tensor& tensor, const torch::Tensor& key, int id) {
+void FlatIVFIndex::addTensorToMap(torch::Tensor& tensor, const torch::Tensor& key, int id, std::string path) {
   if (this->map == nullptr) {
     return;
   }
   if (this->map->exists(key)) {
     EmbeddedDocumentNodeList* list = this->map->get(key);
-    EmbeddedDocumentNode* node = new EmbeddedDocumentNode(tensor, id);
+    EmbeddedDocumentNode* node = new EmbeddedDocumentNode(tensor, id, path);
     EmbeddedDocumentNodeList* listNode = new EmbeddedDocumentNodeList(node);
     list->append(listNode);
   } else {
-    EmbeddedDocumentNode* node = new EmbeddedDocumentNode(tensor, id);
+    EmbeddedDocumentNode* node = new EmbeddedDocumentNode(tensor, id, path);
     EmbeddedDocumentNodeList* listNode = new EmbeddedDocumentNodeList(node);
     this->map->put(key, listNode);
   }
 }
 
-void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) {
+void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, std::vector<std::string>& paths, int clusters) {
   // Random intialization amongst the existing population
   int tensorCount = tensors.size();
   std::vector<torch::Tensor> centroids(clusters);
@@ -76,7 +76,7 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
     this->map = new FlatFileMap<torch::Tensor, EmbeddedDocumentNodeList>(clusters);
     for (int i = 0; i<tensorCount; i++) {
       torch::Tensor closestCluster = assignToCluster(centroids, tensors[i]);
-      this->addTensorToMap(tensors[i], closestCluster, i);
+      this->addTensorToMap(tensors[i], closestCluster, i, paths[i]);
     } 
     std::cout << "Recalculating centroids" << std::endl;
     // recalculate new centroids
@@ -89,7 +89,7 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
         newCentroids[i] = tensors[newClusterIndex];
         continue;
       }
-      std::tuple<EmbeddedDocumentNode, int> reduced = cluster->reduceAdd(EmbeddedDocumentNode(torch::zeros(this->dims), -1));
+      std::tuple<EmbeddedDocumentNode, int> reduced = cluster->reduceAdd(EmbeddedDocumentNode(torch::zeros(this->dims), -1, ""));
       torch::Tensor newMean = std::get<0>(reduced).embedding / (double)std::get<1>(reduced);
       newCentroids[i] = newMean;
     }
@@ -113,9 +113,9 @@ void FlatIVFIndex::runKMeans(std::vector<torch::Tensor>& tensors, int clusters) 
   }
 }
 
-void FlatIVFIndex::train(std::vector<torch::Tensor>& tensors, int ncells) {
+void FlatIVFIndex::train(std::vector<torch::Tensor>& tensors, std::vector<std::string>& paths, int ncells) {
   this->ncells = ncells;
-  this->runKMeans(tensors, ncells);
+  this->runKMeans(tensors, paths, ncells);
   this->isTrained = true;
 }
 

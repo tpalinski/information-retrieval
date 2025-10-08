@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <random>
+#include <filesystem>
 #include <torch/script.h>
 #include <vector>
 #include "inference.hpp"
@@ -11,44 +11,41 @@ torch::Tensor generateEmbedding(std::string query) {
 }
 
 // TODO - change it to an actual embedding
-std::vector<int> getImages(const FlatIVFIndex& index, std::string query, int nresults, int nprobe) {
+std::vector<std::string> getImages(const FlatIVFIndex& index, std::string query, int nresults, int nprobe) {
   torch::Tensor embedding = generateEmbedding(query);
   std::vector<EmbeddedDocumentNode> searchResults = index.find(embedding, nprobe, nresults);
-  std::vector<int> results(searchResults.size());
+  std::vector<std::string> results(searchResults.size());
   std::transform(searchResults.begin(), searchResults.end(), results.begin(), [](EmbeddedDocumentNode e) {
-    return e.id;
+    return e.path;
   });
   return results;
 }
 
-std::vector<torch::Tensor> getImageEmbeddings(std::string datasetPath) {
-  const int64_t num_clusters = 50;
+// TODO - model inference
+torch::Tensor getImageEmbedding(std::string datasetPath) {
   const int64_t dim = 128;
-  const int64_t points_per_cluster = 200;
-  const int64_t total_points = num_clusters * points_per_cluster;
-
-  torch::Tensor centers = torch::randn({num_clusters, dim}) * 50.0;
-  std::vector<torch::Tensor> all_points;
-  all_points.reserve(total_points);
-  for (int64_t k = 0; k < num_clusters; ++k) {
-      auto cluster_points = centers[k].unsqueeze(0) +
-                            torch::randn({points_per_cluster, dim});
-      for (int64_t i = 0; i < points_per_cluster; ++i) {
-          all_points.push_back(cluster_points[i]);
-      }
-  }
-  std::random_device rd;
-  std::mt19937 g(rd());
-  std::shuffle(all_points.begin(), all_points.end(), g);
-  return all_points;
+  return torch::randn(dim)*50.0;
 }
 
-// TODO - change it so that it actually loads data
 FlatIVFIndex trainIndex(std::string datasetPath, std::string outPath, int ncells) {
-  std::vector<torch::Tensor> embeddings = getImageEmbeddings(datasetPath);
+  std::vector<std::string> paths;
+  for (const auto& e : std::filesystem::directory_iterator(datasetPath)) {
+    if (e.is_regular_file()) {
+      auto extension = e.path().extension().string();
+      if (extension == ".jpg" || extension == ".jpeg") {
+        paths.push_back(e.path());
+      }
+    }
+  }
+  std::vector<torch::Tensor> embeddings;
+  embeddings.reserve(paths.size());
+  for (const std::string& path : paths) {
+    torch::Tensor embedding = getImageEmbedding(path);
+    embeddings.push_back(embedding);
+  }
   int dims = embeddings[0].size(0);
   FlatIVFIndex index(dims);
-  index.train(embeddings, ncells);
+  index.train(embeddings, paths, ncells);
   saveIndex(index, outPath);
   return index;
 }

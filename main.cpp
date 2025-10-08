@@ -13,7 +13,7 @@ using json = nlohmann::json;
 
 #define INDEX_SAVE_PATH "data/index.bin"
 #define DATASET_PATH "data/img/"
-#define INDEX_CLUSTERS 50
+#define INDEX_CLUSTERS 250
 
 int main() {
   torch::NoGradGuard gradGuard;
@@ -35,10 +35,15 @@ int main() {
       int nprobe = input.at("nprobe").get<int>();
       int nresults = input.at("nresults").get<int>();
       string query = input.at("query").get<string>();
-      vector<int> results = getImages(index, query, nresults, nprobe);
-      json output = {
-        {"results", results},
-      };
+      vector<string> results = getImages(index, query, nresults, nprobe);
+      json output;
+      output["images"] = json::array();
+      for (string image : results) {
+        ifstream file(image, std::ios::binary);
+        string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        string encoded = base64Encode(buffer);
+        output["images"].push_back({encoded});
+      }
       res.set_content(output.dump(), "application/json");
     } catch(const std::exception e) {
       json error = {{"error", e.what()}};

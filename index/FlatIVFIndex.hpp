@@ -10,12 +10,12 @@ private:
   bool isTrained;
   FlatFileMap<torch::Tensor, EmbeddedDocumentNodeList>* map;
 
-  void runKMeans(std::vector<torch::Tensor>& tensors, int clusters);
-  void addTensorToMap(torch::Tensor& tensor, const torch::Tensor& key, int id);
+  void runKMeans(std::vector<torch::Tensor>& tensors, std::vector<std::string>& paths, int clusters);
+  void addTensorToMap(torch::Tensor& tensor, const torch::Tensor& key, int id, std::string path);
   void serialize(std::ostream& out) const;
 
 public:
-  void train(std::vector<torch::Tensor>& tensors, int ncells);
+  void train(std::vector<torch::Tensor>& tensors, std::vector<std::string>& paths, int ncells);
   std::vector<EmbeddedDocumentNode> find(const torch::Tensor& target, int nprobe, int nresults) const;
 
   FlatIVFIndex(int dims) : FlatIVFIndex() {

@@ -1,4 +1,5 @@
 from sentence_transformers import SentenceTransformer
+import torch
 
 model = SentenceTransformer("jinaai/jina-embeddings-v4", trust_remote_code=True)
 
@@ -12,3 +13,5 @@ embeddings = model.encode(sentences)
 similarities = model.similarity(embeddings, embeddings)
 print(similarities.shape)
 # [3, 3]
+
+
