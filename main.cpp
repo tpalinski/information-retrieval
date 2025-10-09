@@ -13,11 +13,16 @@ using json = nlohmann::json;
 
 #define INDEX_SAVE_PATH "data/index.bin"
 #define DATASET_PATH "data/img/"
+#define SOCKET_ADDRESS "ipc:///tmp/imgsearch.ipc"
 #define INDEX_CLUSTERS 250
 
 int main() {
   torch::NoGradGuard gradGuard;
   httplib::Server server;
+
+  zmq::context_t ctx(1);
+  zmq::socket_t sock(ctx, zmq::socket_type::req);
+  sock.connect(SOCKET_ADDRESS);
 
   FlatIVFIndex index; 
 
@@ -26,7 +31,7 @@ int main() {
     loadIndex(&index, INDEX_SAVE_PATH);
   } else {
     cout << "Could not find trained index, training... " << endl;
-    index = trainIndex(DATASET_PATH, INDEX_SAVE_PATH, INDEX_CLUSTERS);
+    index = trainIndex(DATASET_PATH, INDEX_SAVE_PATH, sock, INDEX_CLUSTERS);
   }
 
   // cors shenanigans
@@ -41,13 +46,13 @@ int main() {
     res.status = 200;
   });
 
-  server.Post("/query",  [&index](const httplib::Request& req, httplib::Response& res){
+  server.Post("/query",  [&index, &sock](const httplib::Request& req, httplib::Response& res){
     try {
       json input = json::parse(req.body);
       int nprobe = input.at("nprobe").get<int>();
       int nresults = input.at("nresults").get<int>();
       string query = input.at("query").get<string>();
-      vector<string> results = getImages(index, query, nresults, nprobe);
+      vector<string> results = getImages(index, sock, query, nresults, nprobe);
       json output;
       output["images"] = json::array();
       for (string image : results) {
